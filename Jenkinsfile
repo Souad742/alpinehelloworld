@@ -21,7 +21,7 @@ pipeline {
                script {
                  sh '''
                     docker run --name $IMAGE_NAME -d -p 80:5000 -e PORT=5000 souad742/$IMAGE_NAME:$IMAGE_TAG
-                    sleep 10
+                    sleep 25
                  '''
                }
             }
