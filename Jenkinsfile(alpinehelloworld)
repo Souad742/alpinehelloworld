@@ -2,45 +2,43 @@ pipeline {
     agent any
 
     tools {
-        // Spécifie l'installation de Maven que tu as configurée sur Jenkins
-        maven 'Maven 3.9.9'  // Assure-toi que ce nom correspond au nom exact que tu as configuré pour Maven sur Jenkins
-        
-        // Spécifie l'installation de JDK 17
-        jdk 'JDK 17'  // Assure-toi que ce nom correspond au nom exact que tu as configuré pour JDK sur Jenkins
+        maven 'Maven 3.9.9'  // Assure-toi que la version de Maven est correctement installée sur Jenkins
+        jdk 'JDK 17'         // Assure-toi que le JDK est configuré dans Jenkins
     }
 
     environment {
-        SONARQUBE_URL = 'http://localhost:9000'  // URL de ton serveur SonarQube local
-        SONARQUBE_TOKEN = credentials('alpinehelloworld')  // Utilise les credentials pour le token SonarQube que tu as créé
+        SONARQUBE_URL = 'http://localhost:9000'
+        SONARQUBE_TOKEN = credentials('alpinehelloworld')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Récupérer le code depuis GitHub
+                // Clone ton projet depuis GitHub
                 git 'https://github.com/Souad742/alpinehelloworld.git'
             }
         }
 
         stage('Build') {
             steps {
-                // Utiliser Maven pour construire le projet
+                // Exécution de Maven dans le répertoire où se trouve le fichier pom.xml
                 script {
-                    sh 'mvn clean install'  // Cette commande va utiliser la version de Maven configurée dans Jenkins
+                    // Vérifie si Maven est exécuté à la racine du projet où pom.xml est situé
+                    sh 'mvn clean install'
                 }
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                // Lancer l'analyse SonarQube
+                // Exécution de l'analyse SonarQube
                 script {
                     sh """
                         mvn sonar:sonar \
                             -Dsonar.projectKey=alpinehelloworld \
                             -Dsonar.projectName=AlpineHelloWorld \
                             -Dsonar.projectVersion=1.0 \
-                            -Dsonar.sources=. \
+                            -Dsonar.sources=src \
                             -Dsonar.java.binaries=target/classes \
                             -Dsonar.host.url=${SONARQUBE_URL} \
                             -Dsonar.login=${SONARQUBE_TOKEN}
@@ -52,7 +50,6 @@ pipeline {
 
     post {
         always {
-            // Actions après le build (si nécessaire)
             echo 'Pipeline finished'
         }
         success {
