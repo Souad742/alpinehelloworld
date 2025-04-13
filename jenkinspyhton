@@ -1,55 +1,62 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.11' // Image Docker avec Python préinstallé
+        }
+    }
 
     environment {
-        SONARQUBE = 'SonarQube' // Nom du serveur SonarQube que tu as configuré
+        SONARQUBE = 'SonarQube' // Nom de ton serveur SonarQube configuré dans Jenkins
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Récupérer les sources depuis ton dépôt Git
+                echo '📥 Récupération du code source...'
                 checkout scm
             }
         }
 
         stage('Check Python and pip') {
             steps {
-                // Vérifier que Python et pip sont installés
+                echo '🔍 Vérification de Python et pip...'
                 sh 'python --version'
                 sh 'pip --version'
             }
         }
 
-        stage('Install Python and pip') {
-            when {
-                expression {
-                    // Vérifier si pip est installé
-                    return sh(script: 'command -v pip', returnStatus: true) != 0
-                }
-            }
+        stage('Install Dependencies') {
             steps {
-                // Installer Python et pip
+                echo '📦 Installation des dépendances Python...'
                 sh '''
-                sudo apt-get update
-                sudo apt-get install -y python3 python3-pip
+                    if [ -f requirements.txt ]; then
+                        pip install -r requirements.txt
+                    else
+                        echo "Pas de fichier requirements.txt trouvé, on passe cette étape."
+                    fi
                 '''
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Run Script') {
             steps {
-                // Installer les dépendances Python
-                sh 'pip install -r requirements.txt'
+                echo '🚀 Exécution de ton script Python...'
+                sh 'python ton_script.py'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
+                echo '🔎 Analyse du code avec SonarQube...'
                 script {
-                    def scannerHome = tool 'SonarQube Scanner'  // Assure-toi que SonarQube Scanner est installé sur Jenkins
-                    withSonarQubeEnv('SonarQube') {  // Utilise le nom du serveur SonarQube configuré dans Jenkins
-                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=alpinehelloworld -Dsonar.sources=."
+                    def scannerHome = tool 'SonarQube Scanner' // Configuré dans Jenkins > Global Tool Configuration
+                    withSonarQubeEnv("${SONARQUBE}") {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                                -Dsonar.projectKey=alpinehelloworld \
+                                -Dsonar.sources=. \
+                                -Dsonar.python.version=3.11
+                        """
                     }
                 }
             }
@@ -57,18 +64,24 @@ pipeline {
 
         stage('Build') {
             steps {
-                // Construire ton application (si nécessaire)
-                sh 'python setup.py install'
+                echo '🔧 Étape de build (optionnelle si ton projet n\'a pas de setup.py)...'
+                sh '''
+                    if [ -f setup.py ]; then
+                        python setup.py install
+                    else
+                        echo "Pas de setup.py trouvé, build ignoré."
+                    fi
+                '''
             }
         }
     }
 
     post {
         success {
-            echo 'Build and SonarQube Analysis completed.'
+            echo '✅ Build et analyse SonarQube terminés avec succès.'
         }
         failure {
-            echo 'Build or SonarQube Analysis failed.'
+            echo '❌ Une étape du pipeline a échoué.'
         }
     }
 }
