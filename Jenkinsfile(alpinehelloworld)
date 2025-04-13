@@ -1,0 +1,57 @@
+pipeline {
+    agent any
+
+    environment {
+        SONARQUBE_URL = 'http://localhost:9000'  // URL de ton SonarQube local
+        SONARQUBE_TOKEN = 'TON_JETON_SONARQUBE'  // Remplace par ton jeton d'authentification SonarQube
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Récupérer le code depuis GitHub
+                git 'https://github.com/Souad742/alpinehelloworld.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Utiliser Maven pour construire le projet
+                script {
+                    sh 'mvn clean install'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                // Lancer l'analyse SonarQube
+                script {
+                    sh """
+                        mvn sonar:sonar \
+                            -Dsonar.projectKey=alpinehelloworld \
+                            -Dsonar.projectName=AlpineHelloWorld \
+                            -Dsonar.projectVersion=1.0 \
+                            -Dsonar.sources=. \
+                            -Dsonar.java.binaries=target/classes \
+                            -Dsonar.host.url=${SONARQUBE_URL} \
+                            -Dsonar.login=${SONARQUBE_TOKEN}
+                    """
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Actions après le build (si nécessaire)
+            echo 'Pipeline finished'
+        }
+        success {
+            echo 'Build and SonarQube analysis completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}
