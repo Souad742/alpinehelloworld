@@ -1,22 +1,22 @@
+
+            
 pipeline {
     agent any
 
     environment {
         SONARQUBE_URL = 'http://localhost:9000'  // URL de ton SonarQube local
-        SONARQUBE_TOKEN = 'TON_JETON_SONARQUBE'  // Remplace par ton jeton d'authentification SonarQube
+        SONARQUBE_TOKEN = credentials('alpinehelloworld')  // Utiliser le credential 'alpinehelloworld'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Récupérer le code depuis GitHub
                 git 'https://github.com/Souad742/alpinehelloworld.git'
             }
         }
 
         stage('Build') {
             steps {
-                // Utiliser Maven pour construire le projet
                 script {
                     sh 'mvn clean install'
                 }
@@ -25,7 +25,6 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                // Lancer l'analyse SonarQube
                 script {
                     sh """
                         mvn sonar:sonar \
@@ -44,7 +43,6 @@ pipeline {
 
     post {
         always {
-            // Actions après le build (si nécessaire)
             echo 'Pipeline finished'
         }
         success {
@@ -55,3 +53,4 @@ pipeline {
         }
     }
 }
+
