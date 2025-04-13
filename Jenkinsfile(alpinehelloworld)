@@ -1,30 +1,39 @@
-
-            
 pipeline {
     agent any
 
+    tools {
+        // Spécifie l'installation de Maven que tu as configurée sur Jenkins
+        maven 'Maven 3.9.9'  // Assure-toi que ce nom correspond au nom exact que tu as configuré pour Maven sur Jenkins
+        
+        // Spécifie l'installation de JDK 17
+        jdk 'JDK 17'  // Assure-toi que ce nom correspond au nom exact que tu as configuré pour JDK sur Jenkins
+    }
+
     environment {
-        SONARQUBE_URL = 'http://localhost:9000'  // URL de ton SonarQube local
-        SONARQUBE_TOKEN = credentials('alpinehelloworld')  // Utiliser le credential 'alpinehelloworld'
+        SONARQUBE_URL = 'http://localhost:9000'  // URL de ton serveur SonarQube local
+        SONARQUBE_TOKEN = credentials('alpinehelloworld')  // Utilise les credentials pour le token SonarQube que tu as créé
     }
 
     stages {
         stage('Checkout') {
             steps {
+                // Récupérer le code depuis GitHub
                 git 'https://github.com/Souad742/alpinehelloworld.git'
             }
         }
 
         stage('Build') {
             steps {
+                // Utiliser Maven pour construire le projet
                 script {
-                    sh 'mvn clean install'
+                    sh 'mvn clean install'  // Cette commande va utiliser la version de Maven configurée dans Jenkins
                 }
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
+                // Lancer l'analyse SonarQube
                 script {
                     sh """
                         mvn sonar:sonar \
@@ -43,6 +52,7 @@ pipeline {
 
     post {
         always {
+            // Actions après le build (si nécessaire)
             echo 'Pipeline finished'
         }
         success {
@@ -53,4 +63,3 @@ pipeline {
         }
     }
 }
-
