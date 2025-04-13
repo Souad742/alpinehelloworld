@@ -13,6 +13,30 @@ pipeline {
             }
         }
 
+        stage('Check Python and pip') {
+            steps {
+                // Vérifier que Python et pip sont installés
+                sh 'python --version'
+                sh 'pip --version'
+            }
+        }
+
+        stage('Install Python and pip') {
+            when {
+                expression {
+                    // Vérifier si pip est installé
+                    return sh(script: 'command -v pip', returnStatus: true) != 0
+                }
+            }
+            steps {
+                // Installer Python et pip
+                sh '''
+                sudo apt-get update
+                sudo apt-get install -y python3 python3-pip
+                '''
+            }
+        }
+
         stage('Install Dependencies') {
             steps {
                 // Installer les dépendances Python
