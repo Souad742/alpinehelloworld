@@ -1,0 +1,50 @@
+pipeline {
+    agent any
+
+    environment {
+        SONARQUBE = 'SonarQube' // Nom du serveur SonarQube que tu as configuré
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Récupérer les sources depuis ton dépôt Git
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                // Installer les dépendances Python
+                sh 'pip install -r requirements.txt'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'SonarQube Scanner'  // Assure-toi que SonarQube Scanner est installé sur Jenkins
+                    withSonarQubeEnv('SonarQube') {  // Utilise le nom du serveur SonarQube configuré dans Jenkins
+                        sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=alpinehelloworld -Dsonar.sources=."
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Construire ton application (si nécessaire)
+                sh 'python setup.py install'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and SonarQube Analysis completed.'
+        }
+        failure {
+            echo 'Build or SonarQube Analysis failed.'
+        }
+    }
+}
