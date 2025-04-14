@@ -38,4 +38,37 @@ pipeline {
                         withCredentials([string(credentialsId: 'alpinehelloworld', variable: 'SONAR_TOKEN')]) {
                             sh """
                                 ${scannerHome}/bin/sonar-scanner \
-                                  -Dsonar.project
+                                  -Dsonar.projectKey=${PROJECT_KEY} \
+                                  -Dsonar.sources=. \
+                                  -Dsonar.python.version=3.11 \
+                                  -Dsonar.login=${SONAR_TOKEN}
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build Python Project') {
+            steps {
+                echo '🔧 Compilation (optionnelle)...'
+                sh '''
+                    if [ -f setup.py ]; then
+                        python setup.py install
+                    else
+                        echo "Pas de setup.py, étape ignorée"
+                    fi
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Pipeline terminée avec succès.'
+        }
+        failure {
+            echo '❌ Échec de la pipeline.'
+        }
+    }
+}
