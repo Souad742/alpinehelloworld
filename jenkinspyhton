@@ -42,13 +42,15 @@ pipeline {
                     withSonarQubeEnv("${SONARQUBE_ENV}") {
                         // Utilisation du token d'authentification SonarQube
                         withCredentials([string(credentialsId: 'alpinehelloworld', variable: 'SONAR_TOKEN')]) {
-                            sh """
-                                ${scannerHome}/bin/sonar-scanner \
-                                  -Dsonar.projectKey=${PROJECT_KEY} \
-                                  -Dsonar.sources=. \
-                                  -Dsonar.login=${SONAR_TOKEN} \
-                                  -Dsonar.host.url=${SONARQUBE_URL}  # Utilisation de l'URL de ton serveur SonarQube
-                            """
+                            withEnv(["SONAR_TOKEN=${SONAR_TOKEN}"]) {
+                                sh """
+                                    ${scannerHome}/bin/sonar-scanner \
+                                      -Dsonar.projectKey=${PROJECT_KEY} \
+                                      -Dsonar.sources=. \
+                                      -Dsonar.login=${SONAR_TOKEN} \
+                                      -Dsonar.host.url=${SONARQUBE_URL}
+                                """
+                            }
                         }
                     }
                 }
