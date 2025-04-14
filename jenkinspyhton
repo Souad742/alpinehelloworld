@@ -40,7 +40,6 @@ pipeline {
                                 ${scannerHome}/bin/sonar-scanner \
                                   -Dsonar.projectKey=${PROJECT_KEY} \
                                   -Dsonar.sources=. \
-                                  -Dsonar.python.version=3.11 \
                                   -Dsonar.login=${SONAR_TOKEN}
                             """
                         }
