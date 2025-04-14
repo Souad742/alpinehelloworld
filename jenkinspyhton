@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.11'
+            args '-u root' // pour s'assurer des permissions suffisantes
+        }
+    }
 
     environment {
         SONARQUBE_ENV = 'SonarQube'
@@ -8,7 +13,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout Code') {
             steps {
                 echo '🔄 Récupération du code source...'
@@ -20,31 +24,10 @@ pipeline {
             steps {
                 echo '📦 Installation des dépendances Python...'
                 sh '''
-                    echo "📥 Vérification ou installation de Python3 et pip3..."
-
-                    # Pour Debian/Ubuntu - si besoin adapte selon l'image utilisée
-                    if ! command -v python3 >/dev/null 2>&1; then
-                        echo "⚠️ Python3 n'est pas installé. Tentative d'installation..."
-                        apt-get update && apt-get install -y python3
-                    fi
-
-                    if ! command -v pip3 >/dev/null 2>&1; then
-                        echo "⚠️ pip3 n'est pas installé. Tentative d'installation..."
-                        apt-get update && apt-get install -y python3-pip
-                    fi
-
-                    if command -v pip3 >/dev/null 2>&1; then
-                        PIP=pip3
-                    else
-                        echo "❌ pip3 introuvable après installation. Abandon."
-                        exit 1
-                    fi
-
                     if [ -f webapp/requirements.txt ]; then
-                        echo "📂 Installation des dépendances depuis requirements.txt..."
-                        $PIP install -r webapp/requirements.txt
+                        pip install -r webapp/requirements.txt
                     else
-                        echo "⚠️ Fichier requirements.txt introuvable dans le dossier webapp."
+                        echo "Pas de fichier requirements.txt trouvé dans webapp"
                     fi
                 '''
             }
@@ -75,9 +58,9 @@ pipeline {
                 echo '🔧 Compilation (optionnelle)...'
                 sh '''
                     if [ -f setup.py ]; then
-                        python3 setup.py install
+                        python setup.py install
                     else
-                        echo "⚠️ Pas de setup.py, étape ignorée."
+                        echo "Pas de setup.py, étape ignorée"
                     fi
                 '''
             }
