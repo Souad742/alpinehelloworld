@@ -2,12 +2,13 @@ pipeline {
     agent any
 
     environment {
-        SONARQUBE_ENV = 'SonarQube'
-        SCANNER_NAME = 'SonarQube Scanner'
-        PROJECT_KEY = 'alpinehelloworld'
+        SONARQUBE_ENV = 'SonarQube'              // Nom de ton serveur SonarQube dans Jenkins
+        SCANNER_NAME = 'SonarQube Scanner'        // Nom du Scanner SonarQube configuré dans Jenkins
+        PROJECT_KEY = 'alpinehelloworld'          // Ton projectKey dans SonarQube
     }
 
     stages {
+        // Étape de récupération du code source depuis ton repo
         stage('Checkout Code') {
             steps {
                 echo '🔄 Récupération du code source...'
@@ -15,6 +16,7 @@ pipeline {
             }
         }
 
+        // Installation des dépendances Python (si nécessaire dans ton projet)
         stage('Install Python Dependencies') {
             steps {
                 echo '📦 Installation des dépendances Python...'
@@ -29,12 +31,15 @@ pipeline {
             }
         }
 
+        // Étape d'analyse SonarQube
         stage('Analyse SonarQube') {
             steps {
                 echo '🔍 Lancement de l’analyse SonarQube...'
                 script {
                     def scannerHome = tool "${SCANNER_NAME}"
+                    // Avec l'environnement SonarQube configuré dans Jenkins
                     withSonarQubeEnv("${SONARQUBE_ENV}") {
+                        // Utilisation d'un token pour l'authentification avec SonarQube
                         withCredentials([string(credentialsId: 'alpinehelloworld', variable: 'SONAR_TOKEN')]) {
                             sh """
                                 ${scannerHome}/bin/sonar-scanner \
@@ -49,6 +54,7 @@ pipeline {
             }
         }
 
+        // Étape de compilation de ton projet Python (facultatif selon ton projet)
         stage('Build Python Project') {
             steps {
                 echo '🔧 Compilation (optionnelle)...'
