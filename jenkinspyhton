@@ -1,75 +1,65 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.11' // Image Docker avec Python préinstallé
-        }
-    }
+    agent any
 
     environment {
-        SONARQUBE = 'SonarQube' // Nom de ton serveur SonarQube configuré dans Jenkins
+        SONARQUBE_ENV = 'SonarQube'             // Le nom du serveur Sonar dans Jenkins
+        SCANNER_NAME = 'SonarQube Scanner'       // Le nom du scanner Sonar installé dans Jenkins
+        PROJECT_KEY = 'alpinehelloworld'         // Nom de ton projet sur SonarQube
     }
 
     stages {
-        stage('Checkout') {
+
+        stage('Checkout Code') {
             steps {
-                echo '📥 Récupération du code source...'
+                echo '🔄 Récupération du code source...'
                 checkout scm
             }
         }
 
-        stage('Check Python and pip') {
-            steps {
-                echo '🔍 Vérification de Python et pip...'
-                sh 'python --version'
-                sh 'pip --version'
-            }
-        }
-
-        stage('Install Dependencies') {
+        stage('Install Python Dependencies') {
             steps {
                 echo '📦 Installation des dépendances Python...'
                 sh '''
-                    if [ -f requirements.txt ]; then
-                        pip install -r requirements.txt
+                    if command -v pip3 >/dev/null 2>&1; then
+                        PIP=pip3
                     else
-                        echo "Pas de fichier requirements.txt trouvé, on passe cette étape."
+                        PIP=pip
+                    fi
+
+                    if [ -f requirements.txt ]; then
+                        $PIP install -r requirements.txt
+                    else
+                        echo "Pas de fichier requirements.txt trouvé"
                     fi
                 '''
             }
         }
 
-        stage('Run Script') {
+        stage('Analyse SonarQube') {
             steps {
-                echo '🚀 Exécution de ton script Python...'
-                sh 'python ton_script.py'
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            steps {
-                echo '🔎 Analyse du code avec SonarQube...'
+                echo '🔍 Lancement de l’analyse SonarQube...'
                 script {
-                    def scannerHome = tool 'SonarQube Scanner' // Configuré dans Jenkins > Global Tool Configuration
-                    withSonarQubeEnv("${SONARQUBE}") {
+                    def scannerHome = tool "${SCANNER_NAME}"
+                    withSonarQubeEnv("${SONARQUBE_ENV}") {
                         sh """
                             ${scannerHome}/bin/sonar-scanner \
-                                -Dsonar.projectKey=alpinehelloworld \
-                                -Dsonar.sources=. \
-                                -Dsonar.python.version=3.11
+                              -Dsonar.projectKey=${PROJECT_KEY} \
+                              -Dsonar.sources=. \
+                              -Dsonar.python.version=3.11
                         """
                     }
                 }
             }
         }
 
-        stage('Build') {
+        stage('Build Python Project') {
             steps {
-                echo '🔧 Étape de build (optionnelle si ton projet n\'a pas de setup.py)...'
+                echo '🔧 Compilation (optionnelle)...'
                 sh '''
                     if [ -f setup.py ]; then
                         python setup.py install
                     else
-                        echo "Pas de setup.py trouvé, build ignoré."
+                        echo "Pas de setup.py, étape ignorée"
                     fi
                 '''
             }
@@ -78,10 +68,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Build et analyse SonarQube terminés avec succès.'
+            echo '✅ Pipeline terminée avec succès.'
         }
         failure {
-            echo '❌ Une étape du pipeline a échoué.'
+            echo '❌ Échec de la pipeline.'
         }
     }
 }
