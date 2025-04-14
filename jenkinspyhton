@@ -20,6 +20,12 @@ pipeline {
                 echo '📦 Installation des dépendances Python...'
                 sh '''
                     if [ -f webapp/requirements.txt ]; then
+                        # Créer un environnement virtuel
+                        python3 -m venv venv
+                        source venv/bin/activate
+                        python --version
+                        pip --version
+                        pip install --upgrade pip
                         pip install -r webapp/requirements.txt
                     else
                         echo "Pas de fichier requirements.txt trouvé dans webapp"
