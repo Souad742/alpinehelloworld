@@ -20,16 +20,31 @@ pipeline {
             steps {
                 echo '📦 Installation des dépendances Python...'
                 sh '''
+                    echo "📥 Vérification ou installation de Python3 et pip3..."
+
+                    # Pour Debian/Ubuntu - si besoin adapte selon l'image utilisée
+                    if ! command -v python3 >/dev/null 2>&1; then
+                        echo "⚠️ Python3 n'est pas installé. Tentative d'installation..."
+                        apt-get update && apt-get install -y python3
+                    fi
+
+                    if ! command -v pip3 >/dev/null 2>&1; then
+                        echo "⚠️ pip3 n'est pas installé. Tentative d'installation..."
+                        apt-get update && apt-get install -y python3-pip
+                    fi
+
                     if command -v pip3 >/dev/null 2>&1; then
                         PIP=pip3
                     else
-                        PIP=pip
+                        echo "❌ pip3 introuvable après installation. Abandon."
+                        exit 1
                     fi
 
                     if [ -f webapp/requirements.txt ]; then
+                        echo "📂 Installation des dépendances depuis requirements.txt..."
                         $PIP install -r webapp/requirements.txt
                     else
-                        echo "Pas de fichier requirements.txt trouvé dans webapp"
+                        echo "⚠️ Fichier requirements.txt introuvable dans le dossier webapp."
                     fi
                 '''
             }
@@ -62,7 +77,7 @@ pipeline {
                     if [ -f setup.py ]; then
                         python3 setup.py install
                     else
-                        echo "Pas de setup.py, étape ignorée"
+                        echo "⚠️ Pas de setup.py, étape ignorée."
                     fi
                 '''
             }
