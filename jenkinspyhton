@@ -26,10 +26,10 @@ pipeline {
                         PIP=pip
                     fi
 
-                    if [ -f requirements.txt ]; then
-                        $PIP install -r requirements.txt
+                    if [ -f webapp/requirements.txt ]; then
+                        $PIP install -r webapp/requirements.txt
                     else
-                        echo "Pas de fichier requirements.txt trouvé"
+                        echo "Pas de fichier requirements.txt trouvé dans webapp"
                     fi
                 '''
             }
@@ -41,12 +41,15 @@ pipeline {
                 script {
                     def scannerHome = tool "${SCANNER_NAME}"
                     withSonarQubeEnv("${SONARQUBE_ENV}") {
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                              -Dsonar.projectKey=${PROJECT_KEY} \
-                              -Dsonar.sources=. \
-                              -Dsonar.python.version=3.11
-                        """
+                        withCredentials([string(credentialsId: 'alpinehelloworld', variable: 'SONAR_TOKEN')]) {
+                            sh """
+                                ${scannerHome}/bin/sonar-scanner \
+                                  -Dsonar.projectKey=${PROJECT_KEY} \
+                                  -Dsonar.sources=. \
+                                  -Dsonar.python.version=3.11 \
+                                  -Dsonar.login=${SONAR_TOKEN}
+                            """
+                        }
                     }
                 }
             }
