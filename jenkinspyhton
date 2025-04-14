@@ -16,16 +16,33 @@ pipeline {
             }
         }
 
+        stage('Install Python') {
+            steps {
+                echo '🔧 Installation de Python et pip...'
+                sh '''
+                    # Mettre à jour les sources et installer Python et pip
+                    sudo apt-get update
+                    sudo apt-get install -y python3 python3-pip
+
+                    # Vérification de l'installation de Python et pip
+                    python3 --version
+                    pip3 --version
+                '''
+            }
+        }
+
         stage('Install Python Dependencies') {
             steps {
                 echo '📦 Installation des dépendances Python...'
                 sh '''
+                    # Vérification de la présence de pip et installation des dépendances
                     if command -v pip3 >/dev/null 2>&1; then
                         PIP=pip3
                     else
                         PIP=pip
                     fi
 
+                    # Installation des dépendances si requirements.txt existe
                     if [ -f webapp/requirements.txt ]; then
                         $PIP install -r webapp/requirements.txt
                     else
@@ -60,7 +77,7 @@ pipeline {
                 echo '🔧 Compilation (optionnelle)...'
                 sh '''
                     if [ -f setup.py ]; then
-                        python setup.py install
+                        python3 setup.py install
                     else
                         echo "Pas de setup.py, étape ignorée"
                     fi
