@@ -4,7 +4,7 @@ pipeline {
     environment {
         SONARQUBE_ENV = 'SonarQube'             // Le nom du serveur Sonar dans Jenkins
         SCANNER_NAME = 'SonarQube Scanner'       // Le nom du scanner Sonar installé dans Jenkins
-        PROJECT_KEY = 'alpinehelloworld'         // Nom de ton projet sur SonarQube
+        PROJECT_KEY = 'alpinehelloworld'         // Nom du projet sur SonarQube
     }
 
     stages {
@@ -16,33 +16,16 @@ pipeline {
             }
         }
 
-        stage('Install Python') {
-            steps {
-                echo '🔧 Installation de Python et pip...'
-                sh '''
-                    # Mettre à jour les sources et installer Python et pip
-                    sudo apt-get update
-                    sudo apt-get install -y python3 python3-pip
-
-                    # Vérification de l'installation de Python et pip
-                    python3 --version
-                    pip3 --version
-                '''
-            }
-        }
-
         stage('Install Python Dependencies') {
             steps {
                 echo '📦 Installation des dépendances Python...'
                 sh '''
-                    # Vérification de la présence de pip et installation des dépendances
                     if command -v pip3 >/dev/null 2>&1; then
                         PIP=pip3
                     else
                         PIP=pip
                     fi
 
-                    # Installation des dépendances si requirements.txt existe
                     if [ -f webapp/requirements.txt ]; then
                         $PIP install -r webapp/requirements.txt
                     else
@@ -87,11 +70,3 @@ pipeline {
     }
 
     post {
-        success {
-            echo '✅ Pipeline terminée avec succès.'
-        }
-        failure {
-            echo '❌ Échec de la pipeline.'
-        }
-    }
-}
