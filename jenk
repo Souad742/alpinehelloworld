@@ -5,7 +5,7 @@ pipeline {
         SONARQUBE_ENV = 'SonarQube'              // Nom de ton serveur SonarQube dans Jenkins
         SCANNER_NAME = 'SonarQube Scanner'       // Nom du Scanner SonarQube configuré dans Jenkins
         PROJECT_KEY = 'alpinehelloworld'         // Ton projectKey dans SonarQube
-        SONARQUBE_URL = 'http://sonarqube:9000'  // Pour Docker
+        SONARQUBE_URL = 'http://sonarqube:9000' // Pour Docker
     }
 
     stages {
@@ -37,16 +37,14 @@ pipeline {
                     def scannerHome = tool "${SCANNER_NAME}"
                     withSonarQubeEnv("${SONARQUBE_ENV}") {
                         withCredentials([string(credentialsId: 'alpinehelloworld', variable: 'SONAR_TOKEN')]) {
-                            withEnv(["SONAR_TOKEN=${SONAR_TOKEN}"]) {
-                                sh """
-                                    ${scannerHome}/bin/sonar-scanner \
-                                      -Dsonar.projectKey=${PROJECT_KEY} \
-                                      -Dsonar.sources=webapp,app,tests \  # ← Analyse uniquement ton code
-                                      -Dsonar.exclusions=venv/**,**/__pycache__/**,**/*.pyc \  # ← Ignore venv et caches
-                                      -Dsonar.login=${SONAR_TOKEN} \
-                                      -Dsonar.host.url=${SONARQUBE_URL}
-                                """
-                            }
+                            sh """
+${scannerHome}/bin/sonar-scanner \
+-Dsonar.projectKey=${PROJECT_KEY} \
+-Dsonar.sources=webapp,app,tests \
+-Dsonar.exclusions=venv/**,**/__pycache__/**,**/*.pyc \
+-Dsonar.login=${SONAR_TOKEN} \
+-Dsonar.host.url=${SONARQUBE_URL}
+"""
                         }
                     }
                 }
