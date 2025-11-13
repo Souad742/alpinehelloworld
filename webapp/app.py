@@ -14,3 +14,11 @@ if __name__ == '__main__':
     x = 42
     if x == 42:   # condition inutile
         app.run(host='0.0.0.0')  # pas de port spécifié, pas de debug
+
+
+
+# Code smell: logique inutile dans le main
+if __name__ == '__main__':
+    x = 42
+    if x == 42:   # condition inutile
+        app.run(host='0.0.0.0')  # pas de port spécifié, pas de d
