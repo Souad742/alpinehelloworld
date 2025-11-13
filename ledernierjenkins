@@ -5,7 +5,7 @@ pipeline {
         SONARQUBE_ENV = 'SonarQube'              // Nom de ton serveur SonarQube dans Jenkins
         SCANNER_NAME = 'SonarQube Scanner'        // Nom du Scanner SonarQube configuré dans Jenkins
         PROJECT_KEY = 'alpinehelloworld'          // Ton projectKey dans SonarQube
-        SONARQUBE_URL = 'http://sonarqube:9000'   // ✅ Corrigé pour fonctionner entre conteneurs Docker
+        SONARQUBE_URL = 'http://sonarqube:9000'  // ✅ Corrigé pour fonctionner entre conteneurs Docker
     }
 
     stages {
@@ -22,7 +22,7 @@ pipeline {
                 sh '''
                     if [ -f webapp/requirements.txt ]; then
                         python3 -m venv venv
-                        bash -c "source venv/bin/activate && pip install -r webapp/requirements.txt"
+                        bash -c "source venv/bin/activate && python3 -m pip install --upgrade pip && pip install -r webapp/requirements.txt"
                     else
                         echo "Pas de fichier requirements.txt trouvé dans webapp"
                     fi
@@ -43,7 +43,7 @@ pipeline {
                                       -Dsonar.projectKey=${PROJECT_KEY} \
                                       -Dsonar.sources=. \
                                       -Dsonar.login=${SONAR_TOKEN} \
-                                      -Dsonar.host.url=${SONARQUBE_URL}
+                                      -Dsonar.host.url=${SONARQUBE_URL} \
                                       -Dsonar.qualitygate.wait=true
                                 """
                             }
@@ -58,7 +58,7 @@ pipeline {
                 echo '🔧 Compilation (optionnelle)...'
                 sh '''
                     if [ -f setup.py ]; then
-                        python setup.py install
+                        python3 setup.py install
                     else
                         echo "Pas de setup.py, étape ignorée"
                     fi
