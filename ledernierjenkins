@@ -5,7 +5,7 @@ pipeline {
         SONARQUBE_ENV = 'SonarQube'              // Nom de ton serveur SonarQube dans Jenkins
         SCANNER_NAME = 'SonarQube Scanner'        // Nom du Scanner SonarQube configuré dans Jenkins
         PROJECT_KEY = 'alpinehelloworld'          // Ton projectKey dans SonarQube
-        SONARQUBE_URL = 'http://sonarqube:9000'  // ✅ Corrigé pour fonctionner entre conteneurs Docker
+        SONARQUBE_URL = 'http://sonarqube:9000'   // URL de ton serveur SonarQube
     }
 
     stages {
@@ -20,9 +20,13 @@ pipeline {
             steps {
                 echo '📦 Installation des dépendances Python...'
                 sh '''
+                    set -e
                     if [ -f webapp/requirements.txt ]; then
                         python3 -m venv venv
-                        bash -c "source venv/bin/activate && python3 -m pip install --upgrade pip && pip install -r webapp/requirements.txt"
+                        . venv/bin/activate
+                        python3 -m ensurepip --upgrade
+                        python3 -m pip install --upgrade pip
+                        pip install -r webapp/requirements.txt
                     else
                         echo "Pas de fichier requirements.txt trouvé dans webapp"
                     fi
@@ -39,6 +43,7 @@ pipeline {
                         withCredentials([string(credentialsId: 'alpinehelloworld', variable: 'SONAR_TOKEN')]) {
                             withEnv(["SONAR_TOKEN=${SONAR_TOKEN}"]) {
                                 sh """
+                                    set -e
                                     ${scannerHome}/bin/sonar-scanner \
                                       -Dsonar.projectKey=${PROJECT_KEY} \
                                       -Dsonar.sources=. \
@@ -57,7 +62,9 @@ pipeline {
             steps {
                 echo '🔧 Compilation (optionnelle)...'
                 sh '''
+                    set -e
                     if [ -f setup.py ]; then
+                        . venv/bin/activate
                         python3 setup.py install
                     else
                         echo "Pas de setup.py, étape ignorée"
