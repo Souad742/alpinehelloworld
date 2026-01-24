@@ -6,7 +6,7 @@ pipeline {
         SONARQUBE_ENV = 'SonarQube'              // Nom de ton serveur SonarQube dans Jenkins
         SCANNER_NAME = 'SonarQube Scanner'       // Nom du Scanner SonarQube configuré dans Jenkins
         PROJECT_KEY = 'alpinehelloworld'         // Ton projectKey dans SonarQube
-        SONARQUBE_URL = 'http://sonarqube2:9000'  // ✅ Nom du conteneur ou tourne sonarqube:port
+        SONARQUBE_URL = 'http://sonarqube2:9000'  // ✅ Nom du conteneur ou tourne sonarqube:port de jenkins qui est fixe a 9000
     }
 
     stages {
